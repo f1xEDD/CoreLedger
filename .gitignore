@@ -1,0 +1,132 @@
+# ---------------------------------------
+# OS / Editor junk
+# ---------------------------------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+Desktop.ini
+
+# ---------------------------------------
+# IDEs
+# ---------------------------------------
+# Visual Studio
+.vs/
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# VS Code (keep common shared files, ignore the rest)
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+
+# ReSharper / Rider caches
+_ReSharper.Caches/
+*.DotSettings.user
+
+# ---------------------------------------
+# .NET / Build outputs
+# ---------------------------------------
+[Bb]in/
+[Oo]bj/
+out/
+Debug/
+Release/
+x64/
+x86/
+[Aa][Rr][Mm]*/
+[Tt]est[Rr]esult*/
+TestResults/
+*.trx
+*.user
+*.suo
+*.cache
+*.pdb
+*.mdb
+*.opendb
+*.vsp
+*.vspx
+
+# NuGet
+*.nupkg
+*.snupkg
+# packages/ is used only with legacy (packages.config). Keep commented unless you really use it.
+# packages/
+
+# Lock file (SDK-style projects can choose to commit it; default here is to allow it)
+# packages.lock.json
+
+# ---------------------------------------
+# Logs / Coverage / Reports
+# ---------------------------------------
+*.log
+logs/
+*.coverage
+*.coveragexml
+coverage/
+coverage-*/
+coverage.*.xml
+coverage.opencover.xml
+Report*.*
+reports/
+
+# BenchmarkDotNet
+BenchmarkDotNet.Artifacts/
+
+# ---------------------------------------
+# Publish / Artifacts / Temp
+# ---------------------------------------
+artifacts/
+publish/
+dist/
+tmp/
+temp/
+
+# ---------------------------------------
+# Configuration / Secrets (keep examples tracked)
+# ---------------------------------------
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# AppSettings: commit Development/Production if they are non-secret;
+# keep developer-local files out of VCS.
+appsettings.*.Local.json
+
+# EF Core: keep migrations in VCS. Do NOT ignore the Migrations folder.
+# Ignore diagram files if you generate them.
+*.dgml
+
+# ---------------------------------------
+# Docker / Local infra
+# ---------------------------------------
+docker-data/
+docker-volume-*/
+# Local overrides should not leak into CI by default
+docker-compose.override.yml
+docker-compose.*.override.yml
+
+# ---------------------------------------
+# Optional: front-end (if you add a UI later)
+# ---------------------------------------
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+# lockfiles are typically committed; leave them allowed
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# ---------------------------------------
+# Misc
+# ---------------------------------------
+*.swp
+*.swo
+*.tmp
