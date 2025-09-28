@@ -12,7 +12,9 @@ public sealed class Transfer
     public string Currency { get; }
     public IReadOnlyList<LedgerEntry> Entries => _entries;
     private readonly List<LedgerEntry> _entries = [];
-
+    
+    private Transfer() { }
+    
     private Transfer(Guid id, string currency)
     {
         TransferId = id;

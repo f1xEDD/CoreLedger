@@ -6,6 +6,13 @@ namespace CoreLedger.Domain.Ledger;
 [DebuggerDisplay("{Direction} {Amount} -> Acc:{AccountId}, Tr:{TransferId}, Val:{ValueDate}")]
 public sealed class LedgerEntry
 {
+    private Guid _entryId;
+    private Guid _accountId;
+    private Guid _transferId;
+    private Money _amount;
+    private DateOnly _bookingDate;
+    private DateOnly _valueDate;
+    
     public Guid EntryId { get; }
     public Guid AccountId { get; }
     public Guid TransferId { get; }
@@ -14,6 +21,8 @@ public sealed class LedgerEntry
     public DateOnly ValueDate { get; }
     public EntryDirection Direction { get; }
 
+    private LedgerEntry() { }
+    
     public LedgerEntry(
         Guid entryId,
         Guid accountId,
