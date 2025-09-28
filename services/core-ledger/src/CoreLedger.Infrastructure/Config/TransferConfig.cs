@@ -13,5 +13,11 @@ public sealed class TransferConfig: IEntityTypeConfiguration<Transfer>
 
         b.Property(x => x.TransferId).HasColumnName("transfer_id");
         b.Property(x => x.Currency).HasColumnName("currency").HasMaxLength(16).IsRequired();
+        
+        b.Property<string>("IdempotencyKey")
+            .HasColumnName("idempotency_key")
+            .HasMaxLength(64);
+        
+        b.HasIndex("IdempotencyKey").IsUnique();
     }
 }
