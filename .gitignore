@@ -111,6 +111,8 @@ docker-volume-*/
 docker-compose.override.yml
 docker-compose.*.override.yml
 
+docker/pgdata
+
 # ---------------------------------------
 # Optional: front-end (if you add a UI later)
 # ---------------------------------------
