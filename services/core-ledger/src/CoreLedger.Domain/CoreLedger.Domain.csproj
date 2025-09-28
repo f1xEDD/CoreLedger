@@ -9,7 +9,6 @@
     <ItemGroup>
       <Folder Include="Abstractions\" />
       <Folder Include="Time\" />
-      <Folder Include="Transfers\" />
     </ItemGroup>
 
 </Project>
