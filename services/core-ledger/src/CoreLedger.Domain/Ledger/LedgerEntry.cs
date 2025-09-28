@@ -1,5 +1,5 @@
-﻿using CoreLedger.Domain.Errors;
 ﻿using System.Diagnostics;
+using CoreLedger.Domain.Abstractions;
 
 namespace CoreLedger.Domain.Ledger;
 
@@ -25,7 +25,7 @@ public sealed class LedgerEntry
     {
         if (valueDate < bookingDate)
         {
-            throw new InvariantViolation("ValueDate must be >= BookingDate.");
+            Guard.That(valueDate >= bookingDate, "ValueDate must be >= BookingDate.");
         }
 
         EntryId = entryId;

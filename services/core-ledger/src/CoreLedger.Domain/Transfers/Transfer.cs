@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
+using CoreLedger.Domain.Abstractions;
 using CoreLedger.Domain.Accounts;
-using CoreLedger.Domain.Errors;
 using CoreLedger.Domain.Ledger;
 
 namespace CoreLedger.Domain.Transfers;
@@ -21,23 +21,20 @@ public sealed class Transfer
 
     public static Transfer Create(Guid transferId, Account from, Account to, Money amount, DateOnly bookingDate, DateOnly valueDate)
     {
-        if (from.AccountId == to.AccountId)
-        {
-            throw new InvalidOperationError("From and To must be different accounts.");
-        }
-
-        if (!from.IsActive || !to.IsActive)
-        {
-            throw new InvalidOperationError("Both accounts must be active.");
-        }
-
-        if (!string.Equals(from.Currency, to.Currency, StringComparison.Ordinal))
-        {
-            throw new CurrencyMismatch();
-        }
+        Guard.AgainstDefault(transferId, nameof(transferId));
+        
+        Guard.Require(from.AccountId != to.AccountId, "From and To must be different accounts.");
+        
+        Guard.Require(from.IsActive && to.IsActive, "Both accounts must be active.");
+        
+        Guard.Require(
+            string.Equals(from.Currency, to.Currency, StringComparison.Ordinal),
+            "Accounts must share the same currency.");
         
         amount.EnsureSameCurrency(new Money(0m, from.Currency));
 
+        Guard.That(valueDate >= bookingDate, "ValueDate must be >= BookingDate.");
+        
         var transfer = new Transfer(transferId, from.Currency);
         
         transfer._entries.Add(new LedgerEntry(Guid.NewGuid(), from.AccountId, transferId, amount, bookingDate, valueDate, EntryDirection.Credit));
@@ -55,18 +52,14 @@ public sealed class Transfer
             .Distinct(StringComparer.Ordinal)
             .Count();
 
-        if (distinctCurrencies != 1)
-        {
-            throw new InvariantViolation("Entries must share the same currency.");
-        }
+        Guard.That(distinctCurrencies == 1, "Entries must share the same currency.");
         
         var sum = _entries
             .Select(e => e.SignedAmount().Amount)
             .Sum();
         
-        if (sum != 0m)
-        {
-            throw new InvariantViolation("Transfer must be balanced (sum == 0).");
-        }
+        Guard.That(sum == 0m, "Transfer must be balanced (sum == 0).");
+        
+        Guard.That(_entries.All(e => e.Amount.Currency == Currency), "Transfer currency mismatch.");
     }
 }
