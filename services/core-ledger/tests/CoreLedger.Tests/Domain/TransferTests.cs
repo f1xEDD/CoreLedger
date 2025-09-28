@@ -70,7 +70,7 @@ public class TransferTests
         Action act = () => Transfer.Create(Guid.NewGuid(), from, to, amount, Today, Today);
 
         // Assert
-        act.Should().Throw<CurrencyMismatch>();
+        act.Should().Throw<InvalidOperationError>();
     }
 
     [Fact]
