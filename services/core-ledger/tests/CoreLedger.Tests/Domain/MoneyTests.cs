@@ -92,6 +92,16 @@ public class MoneyTests
         (a != e).Should().BeTrue();
     }
     
+    [Fact]
+    public void Money_ToString_ShouldBeHumanReadable()
+    {
+        //Arrange
+        var m = new Money(10.5000m, "RUB");
+        
+        //Act + Assert
+        m.ToString().Should().Be("10.5 RUB");
+    }
+    
     private static int ScaleOf(decimal d)
     {
         var bits = decimal.GetBits(d);
