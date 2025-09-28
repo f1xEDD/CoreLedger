@@ -8,7 +8,6 @@
 
     <ItemGroup>
       <Folder Include="Abstractions\" />
-      <Folder Include="Accounts\" />
       <Folder Include="Time\" />
       <Folder Include="Transfers\" />
     </ItemGroup>
