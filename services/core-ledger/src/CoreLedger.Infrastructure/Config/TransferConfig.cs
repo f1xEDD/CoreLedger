@@ -16,7 +16,8 @@ public sealed class TransferConfig: IEntityTypeConfiguration<Transfer>
         
         b.Property<string>("IdempotencyKey")
             .HasColumnName("idempotency_key")
-            .HasMaxLength(64);
+            .HasMaxLength(64)
+            .IsRequired();;
         
         b.HasIndex("IdempotencyKey").IsUnique();
     }
