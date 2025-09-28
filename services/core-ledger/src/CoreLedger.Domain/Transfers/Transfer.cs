@@ -1,9 +1,11 @@
-﻿using CoreLedger.Domain.Accounts;
+﻿using System.Diagnostics;
+using CoreLedger.Domain.Accounts;
 using CoreLedger.Domain.Errors;
 using CoreLedger.Domain.Ledger;
 
 namespace CoreLedger.Domain.Transfers;
 
+[DebuggerDisplay("Tr:{TransferId} {Currency} entries:{Entries.Count}")]
 public sealed class Transfer
 {
     public Guid TransferId { get; }

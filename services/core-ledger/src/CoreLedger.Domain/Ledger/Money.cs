@@ -1,7 +1,9 @@
-﻿using CoreLedger.Domain.Errors;
+﻿using System.Diagnostics;
+using CoreLedger.Domain.Errors;
 
 namespace CoreLedger.Domain.Ledger;
 
+[DebuggerDisplay("{Amount} {Currency}")]
 public readonly record struct Money
 {
     public decimal Amount { get; }

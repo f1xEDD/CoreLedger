@@ -1,5 +1,8 @@
-﻿namespace CoreLedger.Domain.Accounts;
+﻿using System.Diagnostics;
 
+namespace CoreLedger.Domain.Accounts;
+
+[DebuggerDisplay("Acc:{AccountId} {Currency} [{Status}]")]
 public sealed class Account
 {
     public Guid AccountId { get; }

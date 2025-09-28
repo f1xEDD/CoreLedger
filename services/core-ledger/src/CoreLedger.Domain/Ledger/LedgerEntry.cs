@@ -1,7 +1,9 @@
 ﻿using CoreLedger.Domain.Errors;
+﻿using System.Diagnostics;
 
 namespace CoreLedger.Domain.Ledger;
 
+[DebuggerDisplay("{Direction} {Amount} -> Acc:{AccountId}, Tr:{TransferId}, Val:{ValueDate}")]
 public sealed class LedgerEntry
 {
     public Guid EntryId { get; }
