@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Globalization;
 using CoreLedger.Domain.Errors;
 
 namespace CoreLedger.Domain.Ledger;
@@ -47,5 +48,5 @@ public readonly record struct Money
         return new Money(decimal.Round(a.Amount * factor, 4, MidpointRounding.ToEven), a.Currency);
     }
     
-    public override string ToString() => $"{Amount:0.####} {Currency}";
+    public override string ToString() => $"{Amount.ToString("0.####", CultureInfo.InvariantCulture)} {Currency}";
 }
