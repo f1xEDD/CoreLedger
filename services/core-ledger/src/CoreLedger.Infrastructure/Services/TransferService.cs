@@ -31,8 +31,7 @@ public sealed class TransferService(LedgerDbContext db, ILogger<TransferService>
 
             return Result<Guid>.Ok(existingId);
         }
-
-        // 2) Транзакция + row-locks
+        
         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, ct);
 
         var accounts = await db.Accounts

@@ -1,7 +1,6 @@
-using System.Text.Json;
 using CoreLedger.Api.Dto.Accounts;
 using CoreLedger.Api.Dto.Transfers;
-using CoreLedger.Application.Errors;
+using CoreLedger.Application.Abstractions;
 using CoreLedger.Application.Services;
 using CoreLedger.Domain.Accounts;
 using CoreLedger.Infrastructure;
@@ -83,7 +82,7 @@ app.MapPost("/transfers",
             var booking = req.BookingDate ?? DateOnly.FromDateTime(DateTime.UtcNow.Date);
             var value = req.ValueDate ?? booking;
 
-            var id = await svc.CreateAsync(
+            var res = await svc.CreateAsync(
                 key,
                 req.FromAccountId,
                 req.ToAccountId,
@@ -93,11 +92,18 @@ app.MapPost("/transfers",
                 value,
                 ct);
 
-            return Results.Created($"/transfers/{id}", new CreateTransferResponse(id));
-        }
-        catch (NotFoundError nf)
-        {
-            return Results.NotFound(new { error = nf.Message });
+            if (!res.IsSuccess)
+            {
+                return res.Error switch
+                {
+                    NotFoundError   => Results.NotFound(new { error = res.Error.Code, res.Error.Message }),
+                    ConflictError   => Results.Conflict(new { error = res.Error.Code, res.Error.Message }),
+                    InvalidError    => Results.BadRequest(new { error = res.Error.Code, res.Error.Message }),
+                    _               => Results.Problem(res.Error?.Message)
+                };
+            }
+            
+            return Results.Created($"/transfers/{res.Value}", new CreateTransferResponse(res.Value));
         }
         catch (Exception ex)
         {
