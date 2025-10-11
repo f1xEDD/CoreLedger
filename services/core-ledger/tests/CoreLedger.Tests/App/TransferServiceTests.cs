@@ -27,7 +27,7 @@ public class TransferServiceTests(TestPostgresFixture fixture)
         var key = Guid.NewGuid().ToString("N");
         var booking = Today;
 
-        var transferId = await transferService.CreateAsync(
+        var result = await transferService.CreateAsync(
             key,
             fromId,
             toId,
@@ -36,6 +36,8 @@ public class TransferServiceTests(TestPostgresFixture fixture)
             booking,
             booking,
             ct: CancellationToken.None);
+
+        var transferId = result.Value;
 
         var transfers = await env.Db.Transfers.CountAsync();
         transfers.Should().Be(1);
@@ -64,8 +66,8 @@ public class TransferServiceTests(TestPostgresFixture fixture)
         var key = Guid.NewGuid().ToString("N");
         var booking = Today;
 
-        var id1 = await svc.CreateAsync(key, fromId, toId, 50m, "RUB", booking, booking, CancellationToken.None);
-        var id2 = await svc.CreateAsync(key, fromId, toId, 50m, "RUB", booking, booking, CancellationToken.None);
+        var id1 = (await svc.CreateAsync(key, fromId, toId, 50m, "RUB", booking, booking, CancellationToken.None)).Value;
+        var id2 = (await svc.CreateAsync(key, fromId, toId, 50m, "RUB", booking, booking, CancellationToken.None)).Value;
 
         id2.Should().Be(id1);
 
@@ -97,7 +99,7 @@ public class TransferServiceTests(TestPostgresFixture fixture)
             return await svc.CreateAsync(key, fromId, toId, 10m, "RUB", booking, booking, CancellationToken.None);
         });
 
-        var ids = await Task.WhenAll(tasks);
+        var ids = (await Task.WhenAll(tasks)).Select(e => e.Value).ToList();
 
         ids.Distinct().Should().HaveCount(1);
 
