@@ -23,6 +23,17 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.MapPost("/accounts", async (CreateAccountRequest req, LedgerDbContext db) =>
+{
+    var account = new Account(Guid.NewGuid(), Guid.NewGuid(), req.Currency);
+    
+    db.Accounts.Add(account);
+    
+    await db.SaveChangesAsync();
+    
+    return Results.Created($"/accounts/{account.AccountId}", new CreateAccountResponse(account.AccountId));
+});
+
 app.MapPost("/transfers",
     async (HttpRequest http, CreateTransferRequest req, ITransferService svc, CancellationToken ct) =>
     {
