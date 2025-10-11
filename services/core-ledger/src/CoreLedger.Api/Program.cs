@@ -1,9 +1,7 @@
 using CoreLedger.Api;
 using CoreLedger.Api.Dto.Accounts;
 using CoreLedger.Api.Dto.Transfers;
-using CoreLedger.Application.Abstractions;
 using CoreLedger.Application.Services;
-using CoreLedger.Domain.Accounts;
 using CoreLedger.Infrastructure;
 using CoreLedger.Infrastructure.Services;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -26,6 +24,7 @@ builder.Services
     .AddDbContextCheck<LedgerDbContext>("db");
 
 builder.Services.AddScoped<ITransferService, TransferService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 
 var app = builder.Build();
 
@@ -56,15 +55,18 @@ app.MapHealthChecks("/ready", new HealthCheckOptions
     }
 });
 
-app.MapPost("/accounts", async (CreateAccountRequest req, LedgerDbContext db) =>
+app.MapPost("/accounts", async (CreateAccountRequest req, IAccountService svc, CancellationToken ct) =>
 {
-    var account = new Account(Guid.NewGuid(), Guid.NewGuid(), req.Currency);
+    var result = await svc.CreateAsync(req.Currency, ct);
     
-    db.Accounts.Add(account);
+    return ApiResults.From(result, id => Results.Created($"/accounts/{id}", new CreateAccountResponse(id)));
+});
+
+app.MapPost("/accounts/{id:guid}/close", async (Guid id, IAccountService svc, CancellationToken ct) =>
+{
+    var result = await svc.CloseAsync(id, ct);
     
-    await db.SaveChangesAsync();
-    
-    return Results.Created($"/accounts/{account.AccountId}", new CreateAccountResponse(account.AccountId));
+    return ApiResults.From(result, _ => Results.Ok(new { closed = true }));
 });
 
 app.MapPost("/transfers",
