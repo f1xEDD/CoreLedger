@@ -1,5 +1,5 @@
 ﻿using System.Data;
-using CoreLedger.Application.Errors;
+using CoreLedger.Application.Abstractions;
 using CoreLedger.Application.Services;
 using CoreLedger.Domain.Ledger;
 using CoreLedger.Domain.Transfers;
@@ -10,7 +10,7 @@ namespace CoreLedger.Infrastructure.Services;
 
 public sealed class TransferService(LedgerDbContext db, ILogger<TransferService> logger) : ITransferService
 {
-    public async Task<Guid> CreateAsync(
+    public async Task<Result<Guid>> CreateAsync(
         string idk,
         Guid fromId,
         Guid toId,
@@ -29,7 +29,7 @@ public sealed class TransferService(LedgerDbContext db, ILogger<TransferService>
         {
             logger.LogInformation("Idempotent hit: transfer_id={TransferId} key={Key}", existingId, idk);
 
-            return existingId;
+            return Result<Guid>.Ok(existingId);
         }
 
         // 2) Транзакция + row-locks
@@ -45,11 +45,19 @@ public sealed class TransferService(LedgerDbContext db, ILogger<TransferService>
             .AsTracking()
             .ToListAsync(ct);
 
-        var from = accounts.SingleOrDefault(a => a.AccountId == fromId) ??
-                   throw new NotFoundError("From account not found.");
+        var from = accounts.SingleOrDefault(a => a.AccountId == fromId);
 
-        var to = accounts.SingleOrDefault(a => a.AccountId == toId) ??
-                 throw new NotFoundError("To account not found.");
+        if (from is null)
+        {
+            return Result<Guid>.Fail(AppError.NotFound("From account not found."));
+        }
+
+        var to = accounts.SingleOrDefault(a => a.AccountId == toId);
+
+        if (to is null)
+        {
+            return Result<Guid>.Fail(AppError.NotFound("To account not found."));
+        }
 
         var money = new Money(amount, currency ?? from.Currency);
 
@@ -70,7 +78,7 @@ public sealed class TransferService(LedgerDbContext db, ILogger<TransferService>
                 "Transfer created: transfer_id={TransferId} from={From} to={To} amount={Amount} {Currency}",
                 transferId, fromId, toId, amount, currency ?? "RUB");
 
-            return transferId;
+            return Result<Guid>.Ok(transferId);
         }
         catch (DbUpdateException ex) when (IsUniqueViolationOnIdempotencyKey(ex))
         {
@@ -85,7 +93,7 @@ public sealed class TransferService(LedgerDbContext db, ILogger<TransferService>
                 "Idempotent race resolved: returning existing transfer_id={TransferId} key={Key}",
                 id, idk);
 
-            return id;
+            return Result<Guid>.Ok(id);
         }
     }
 
