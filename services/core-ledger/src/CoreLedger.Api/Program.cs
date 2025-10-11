@@ -1,8 +1,14 @@
+using System.Text.Json;
+using CoreLedger.Api.Dto.Accounts;
 using CoreLedger.Api.Dto.Transfers;
+using CoreLedger.Application.Errors;
 using CoreLedger.Application.Services;
+using CoreLedger.Domain.Accounts;
 using CoreLedger.Infrastructure;
 using CoreLedger.Infrastructure.Services;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,20 +51,31 @@ app.MapPost("/transfers",
             return Results.BadRequest("Missing Idempotency-Key header.");
         }
 
-        var booking = req.BookingDate ?? DateOnly.FromDateTime(DateTime.UtcNow.Date);
-        var value = req.ValueDate ?? booking;
+        try
+        {
+            var booking = req.BookingDate ?? DateOnly.FromDateTime(DateTime.UtcNow.Date);
+            var value = req.ValueDate ?? booking;
 
-        var id = await svc.CreateAsync(
-            key,
-            req.FromAccountId,
-            req.ToAccountId,
-            req.Amount,
-            req.Currency,
-            booking,
-            value,
-            ct);
-        
-        return Results.Created($"/transfers/{id}", new CreateTransferResponse(id));
+            var id = await svc.CreateAsync(
+                key,
+                req.FromAccountId,
+                req.ToAccountId,
+                req.Amount,
+                req.Currency,
+                booking,
+                value,
+                ct);
+
+            return Results.Created($"/transfers/{id}", new CreateTransferResponse(id));
+        }
+        catch (NotFoundError nf)
+        {
+            return Results.NotFound(new { error = nf.Message });
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem(detail: ex.Message);
+        }
     });
 
 app.Run();
