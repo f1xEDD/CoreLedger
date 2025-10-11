@@ -1,6 +1,7 @@
 using CoreLedger.Api;
 using CoreLedger.Api.Dto.Accounts;
 using CoreLedger.Api.Dto.Transfers;
+using CoreLedger.Api.Middlewares;
 using CoreLedger.Application.Services;
 using CoreLedger.Infrastructure;
 using CoreLedger.Infrastructure.Services;
@@ -26,12 +27,16 @@ builder.Services
 builder.Services.AddScoped<ITransferService, TransferService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 
+builder.Services.AddTransient<DomainErrorMiddleware>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.UseMiddleware<DomainErrorMiddleware>();
 
 app.MapHealthChecks("/health", new HealthCheckOptions
 {
