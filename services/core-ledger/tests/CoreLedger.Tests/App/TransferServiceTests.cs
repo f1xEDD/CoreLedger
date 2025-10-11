@@ -2,6 +2,7 @@
 using CoreLedger.Tests.Infra;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CoreLedger.Tests.App;
 
@@ -21,7 +22,7 @@ public class TransferServiceTests(TestPostgresFixture fixture)
         var fromId = await env.CreateAccountAsync("RUB");
         var toId   = await env.CreateAccountAsync("RUB");
 
-        var transferService = new TransferService(env.Db);
+        var transferService = new TransferService(env.Db, NullLogger<TransferService>.Instance);
 
         var key = Guid.NewGuid().ToString("N");
         var booking = Today;
@@ -58,7 +59,7 @@ public class TransferServiceTests(TestPostgresFixture fixture)
         var fromId = await env.CreateAccountAsync("RUB");
         var toId   = await env.CreateAccountAsync("RUB");
 
-        var svc = new TransferService(env.Db);
+        var svc = new TransferService(env.Db, NullLogger<TransferService>.Instance);
 
         var key = Guid.NewGuid().ToString("N");
         var booking = Today;
@@ -92,8 +93,8 @@ public class TransferServiceTests(TestPostgresFixture fixture)
         var tasks = Enumerable.Range(0, parallel).Select(async _ =>
         {
             await using var scopedEnv = CreateEnv();
-            var svc = new TransferService(scopedEnv.Db);
-            return await svc.CreateAsync(key, fromId, toId, 10m, "RUB", booking, booking, default);
+            var svc = new TransferService(scopedEnv.Db, NullLogger<TransferService>.Instance);
+            return await svc.CreateAsync(key, fromId, toId, 10m, "RUB", booking, booking, CancellationToken.None);
         });
 
         var ids = await Task.WhenAll(tasks);

@@ -20,6 +20,11 @@ builder.Services.AddDbContextPool<LedgerDbContext>(opt =>
         npg => npg.MigrationsHistoryTable("__ef_migrations_history", "public"));
 });
 
+builder.Services
+    .AddHealthChecks()
+    .AddCheck("self", () => HealthCheckResult.Healthy())
+    .AddDbContextCheck<LedgerDbContext>("db");
+
 builder.Services.AddScoped<ITransferService, TransferService>();
 
 var app = builder.Build();
@@ -28,6 +33,28 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    Predicate = r => r.Name == "self",
+    ResultStatusCodes =
+    {
+        [HealthStatus.Healthy] = StatusCodes.Status200OK,
+        [HealthStatus.Degraded] = StatusCodes.Status200OK,
+        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+    }
+});
+
+app.MapHealthChecks("/ready", new HealthCheckOptions
+{
+    Predicate = _ => true,
+    ResultStatusCodes =
+    {
+        [HealthStatus.Healthy] = StatusCodes.Status200OK,
+        [HealthStatus.Degraded] = StatusCodes.Status200OK,
+        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+    }
+});
 
 app.MapPost("/accounts", async (CreateAccountRequest req, LedgerDbContext db) =>
 {
