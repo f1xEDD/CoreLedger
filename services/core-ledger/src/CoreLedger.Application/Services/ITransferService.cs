@@ -1,8 +1,10 @@
-﻿namespace CoreLedger.Application.Services;
+﻿using CoreLedger.Application.Abstractions;
+
+namespace CoreLedger.Application.Services;
 
 public interface ITransferService
 {
-    Task<Guid> CreateAsync(
+    Task<Result<Guid>> CreateAsync(
         string idempotencyKey,
         Guid fromAccountId,
         Guid toAccountId,
