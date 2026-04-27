@@ -35,12 +35,13 @@ public sealed class TransferService(LedgerDbContext db, ILogger<TransferService>
         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, ct);
 
         var accounts = await db.Accounts
-            .FromSqlInterpolated($"""
-                                      SELECT a.*
-                                      FROM accounts AS a
-                                      WHERE a.account_id IN ({fromId}, {toId})
-                                      FOR UPDATE
-                                  """)
+            .FromSqlInterpolated(
+            $"""
+                SELECT a.*
+                FROM accounts AS a
+                WHERE a.account_id IN ({fromId}, {toId})
+                FOR UPDATE
+            """)
             .AsTracking()
             .ToListAsync(ct);
 
@@ -58,6 +59,11 @@ public sealed class TransferService(LedgerDbContext db, ILogger<TransferService>
             return Result<Guid>.Fail(AppError.NotFound("To account not found."));
         }
 
+        if (!string.Equals(from.Currency, to.Currency, StringComparison.Ordinal))
+        {
+            return Result<Guid>.Fail(AppError.Invalid("Accounts must share the same currency"));
+        }
+        
         var money = new Money(amount, currency ?? from.Currency);
 
         var transferId = Guid.NewGuid();
