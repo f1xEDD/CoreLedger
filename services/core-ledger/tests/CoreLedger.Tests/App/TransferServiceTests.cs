@@ -1,4 +1,5 @@
-﻿using CoreLedger.Infrastructure.Services;
+﻿using CoreLedger.Application.Abstractions;
+using CoreLedger.Infrastructure.Services;
 using CoreLedger.Tests.Infra;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -61,13 +62,13 @@ public class TransferServiceTests(TestPostgresFixture fixture)
         var fromId = await env.CreateAccountAsync("RUB");
         var toId   = await env.CreateAccountAsync("RUB");
 
-        var svc = new TransferService(env.Db, NullLogger<TransferService>.Instance);
+        var transferService = new TransferService(env.Db, NullLogger<TransferService>.Instance);
 
         var key = Guid.NewGuid().ToString("N");
         var booking = Today;
 
-        var id1 = (await svc.CreateAsync(key, fromId, toId, 50m, "RUB", booking, booking, CancellationToken.None)).Value;
-        var id2 = (await svc.CreateAsync(key, fromId, toId, 50m, "RUB", booking, booking, CancellationToken.None)).Value;
+        var id1 = (await transferService.CreateAsync(key, fromId, toId, 50m, "RUB", booking, booking, CancellationToken.None)).Value;
+        var id2 = (await transferService.CreateAsync(key, fromId, toId, 50m, "RUB", booking, booking, CancellationToken.None)).Value;
 
         id2.Should().Be(id1);
 
@@ -109,5 +110,38 @@ public class TransferServiceTests(TestPostgresFixture fixture)
         var entries = await env.Db.LedgerEntries.Where(e => e.TransferId == transferId).ToListAsync();
         entries.Should().HaveCount(2);
         entries.Sum(e => e.SignedAmount().Amount).Should().Be(0m);
+    }
+    
+    [Fact]
+    public async Task CreateAsync_ShouldReturnNotFound_WhenFromAccountMissing()
+    {
+        await using var env = CreateEnv();
+        await env.TruncateAllAsync();
+        
+        var to = await env.CreateAccountAsync("RUB");
+        
+        var transferService = new TransferService(env.Db, NullLogger<TransferService>.Instance);
+
+        var res = await transferService.CreateAsync("k", Guid.NewGuid(), to, 10m, "RUB", Today, Today, CancellationToken.None);
+
+        res.IsSuccess.Should().BeFalse();
+        res.Error.Should().BeOfType<NotFoundError>();
+    }
+    
+    [Fact]
+    public async Task CreateAsync_ShouldReturnInvalid_WhenCurrencyMismatch()
+    {
+        await using var env = CreateEnv();
+        await env.TruncateAllAsync();
+        
+        var from = await env.CreateAccountAsync("RUB");
+        var to   = await env.CreateAccountAsync("USD");
+        
+        var transferService = new TransferService(env.Db, NullLogger<TransferService>.Instance);
+
+        var res = await transferService.CreateAsync("k", from, to, 10m, "RUB", Today, Today, CancellationToken.None);
+
+        res.IsSuccess.Should().BeFalse();
+        res.Error.Should().BeOfType<InvalidError>();
     }
 }
