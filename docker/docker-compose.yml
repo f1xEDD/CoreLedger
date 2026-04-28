@@ -1,5 +1,4 @@
-﻿version: "3.8"
-services:
+﻿services:
   pg:
     image: postgres:16-alpine
     container_name: coreledger-pg
@@ -15,4 +14,19 @@ services:
       test: ["CMD-SHELL", "pg_isready -U dev -d coreledger"]
       interval: 3s
       timeout: 3s
+      retries: 10
+      
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: coreledger-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: dev
+      RABBITMQ_DEFAULT_PASS: devpass
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 5s
+      timeout: 5s
       retries: 10
