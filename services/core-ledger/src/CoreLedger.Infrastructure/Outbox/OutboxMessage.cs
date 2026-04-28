@@ -49,8 +49,14 @@ public sealed class OutboxMessage
         Status = OutboxMessageStatus.Failed;
     }
 
-    public void MarkPending()
+    public void MarkPending(string? error)
     {
+        if (error is not null)
+        {
+            Attempts++;
+            LastError = error;
+        }
+
         Status = OutboxMessageStatus.Pending;
     }
 }
