@@ -11,6 +11,7 @@ namespace CoreLedger.Tests.App;
 public class TransferServiceTests(TestPostgresFixture fixture)
 {
     private static DateOnly Today => DateOnly.FromDateTime(DateTime.UtcNow.Date);
+    private static readonly TestTimeProvider TimeProvider = new(DateTime.UtcNow);
 
     private TestEnv CreateEnv() => new(fixture.CreateDbContext());
     
@@ -23,7 +24,7 @@ public class TransferServiceTests(TestPostgresFixture fixture)
         var fromId = await env.CreateAccountAsync("RUB");
         var toId   = await env.CreateAccountAsync("RUB");
 
-        var transferService = new TransferService(env.Db, NullLogger<TransferService>.Instance);
+        var transferService = new TransferService(env.Db, TimeProvider, NullLogger<TransferService>.Instance);
 
         var key = Guid.NewGuid().ToString("N");
         var booking = Today;
@@ -62,7 +63,7 @@ public class TransferServiceTests(TestPostgresFixture fixture)
         var fromId = await env.CreateAccountAsync("RUB");
         var toId   = await env.CreateAccountAsync("RUB");
 
-        var transferService = new TransferService(env.Db, NullLogger<TransferService>.Instance);
+        var transferService = new TransferService(env.Db, TimeProvider, NullLogger<TransferService>.Instance);
 
         var key = Guid.NewGuid().ToString("N");
         var booking = Today;
@@ -96,7 +97,7 @@ public class TransferServiceTests(TestPostgresFixture fixture)
         var tasks = Enumerable.Range(0, parallel).Select(async _ =>
         {
             await using var scopedEnv = CreateEnv();
-            var svc = new TransferService(scopedEnv.Db, NullLogger<TransferService>.Instance);
+            var svc = new TransferService(scopedEnv.Db, TimeProvider, NullLogger<TransferService>.Instance);
             return await svc.CreateAsync(key, fromId, toId, 10m, "RUB", booking, booking, CancellationToken.None);
         });
 
@@ -120,7 +121,7 @@ public class TransferServiceTests(TestPostgresFixture fixture)
         
         var to = await env.CreateAccountAsync("RUB");
         
-        var transferService = new TransferService(env.Db, NullLogger<TransferService>.Instance);
+        var transferService = new TransferService(env.Db, TimeProvider, NullLogger<TransferService>.Instance);
 
         var res = await transferService.CreateAsync("k", Guid.NewGuid(), to, 10m, "RUB", Today, Today, CancellationToken.None);
 
@@ -137,7 +138,7 @@ public class TransferServiceTests(TestPostgresFixture fixture)
         var from = await env.CreateAccountAsync("RUB");
         var to   = await env.CreateAccountAsync("USD");
         
-        var transferService = new TransferService(env.Db, NullLogger<TransferService>.Instance);
+        var transferService = new TransferService(env.Db, TimeProvider, NullLogger<TransferService>.Instance);
 
         var res = await transferService.CreateAsync("k", from, to, 10m, "RUB", Today, Today, CancellationToken.None);
 

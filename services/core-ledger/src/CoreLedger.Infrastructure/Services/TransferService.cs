@@ -2,13 +2,17 @@
 using CoreLedger.Application.Abstractions;
 using CoreLedger.Application.Services;
 using CoreLedger.Domain.Ledger;
+using CoreLedger.Domain.Time;
 using CoreLedger.Domain.Transfers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace CoreLedger.Infrastructure.Services;
 
-public sealed class TransferService(LedgerDbContext db, ILogger<TransferService> logger) : ITransferService
+public sealed class TransferService(
+    LedgerDbContext db,
+    ITimeProvider timeProvider,
+    ILogger<TransferService> logger) : ITransferService
 {
     public async Task<Result<Guid>> CreateAsync(
         string idk,

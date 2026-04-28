@@ -3,6 +3,7 @@ using CoreLedger.Api.Dto.Accounts;
 using CoreLedger.Api.Dto.Transfers;
 using CoreLedger.Api.Middlewares;
 using CoreLedger.Application.Services;
+using CoreLedger.Domain.Time;
 using CoreLedger.Infrastructure;
 using CoreLedger.Infrastructure.Services;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -25,6 +26,7 @@ builder.Services
     .AddCheck("self", () => HealthCheckResult.Healthy())
     .AddDbContextCheck<LedgerDbContext>("db");
 
+builder.Services.AddSingleton<ITimeProvider, SystemTimeProvider>();
 builder.Services.AddScoped<ITransferService, TransferService>();
 builder.Services.AddScoped<ITransferQueryService, TransferQueryService>();
 builder.Services.AddScoped<IAccountService, AccountService>();

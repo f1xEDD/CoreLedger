@@ -11,6 +11,7 @@ namespace CoreLedger.Tests.App;
 public class AccountQueryServiceTests(TestPostgresFixture fixture)
 {
     private static DateOnly Today => DateOnly.FromDateTime(DateTime.UtcNow.Date);
+    private static readonly TestTimeProvider TimeProvider = new(DateTime.UtcNow);
 
     private TestEnv CreateEnv() => new(fixture.CreateDbContext());
 
@@ -23,7 +24,7 @@ public class AccountQueryServiceTests(TestPostgresFixture fixture)
         var fromId = await env.CreateAccountAsync("RUB");
         var toId = await env.CreateAccountAsync("RUB");
 
-        var transferService = new TransferService(env.Db, NullLogger<TransferService>.Instance);
+        var transferService = new TransferService(env.Db, TimeProvider, NullLogger<TransferService>.Instance);
 
         await transferService.CreateAsync(
             Guid.NewGuid().ToString("N"),
