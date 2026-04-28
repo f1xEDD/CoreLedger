@@ -221,6 +221,29 @@ Balance rules:
 - `Credit` contributes `-amount`
 - balance is the sum of signed ledger entry amounts for the account
 
+## Transfer Outbox Event
+
+When a transfer is created successfully, the service also writes one outbox record to `outbox_messages`.
+
+Current event:
+- `type = coreledger.transfer.created.v1`
+
+The outbox payload contains:
+- `transferId`
+- `fromAccountId`
+- `toAccountId`
+- `amount`
+- `currency`
+- `bookingDate`
+- `valueDate`
+- `occurredAtUtc`
+
+Dispatcher behavior:
+- successful publish marks the message as `Processed`
+- publish failure increments `Attempts`
+- if retry budget remains, the message stays `Pending`
+- if `MaxAttempts` is exhausted, the message becomes `Failed`
+
 ## Error Codes
 
 Expected application errors are returned in a consistent shape:
@@ -263,3 +286,4 @@ Transfer-specific notes:
 - `Application` defines contracts and `Result<T>`-based use-case boundaries.
 - `Infrastructure` contains EF Core persistence and query/service implementations.
 - `Api` stays thin and maps `Result<T>` to HTTP responses.
+- transfer side effects are persisted through the outbox pattern before dispatch.
