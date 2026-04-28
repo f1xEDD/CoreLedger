@@ -1,4 +1,7 @@
-﻿using CoreLedger.Application.Abstractions;
+using System.Text.Json;
+using CoreLedger.Application.Abstractions;
+using CoreLedger.Application.Transfers.Events;
+using CoreLedger.Infrastructure.Outbox;
 using CoreLedger.Infrastructure.Services;
 using CoreLedger.Tests.Infra;
 using FluentAssertions;
@@ -52,6 +55,50 @@ public class TransferServiceTests(TestPostgresFixture fixture)
 
         var signedSum = entries.Select(e => e.SignedAmount().Amount).Sum();
         signedSum.Should().Be(0m);
+    }
+
+    [Fact]
+    public async Task CreateAsync_ShouldCreatePendingOutboxMessage_WhenTransferCreated()
+    {
+        await using var env = CreateEnv();
+        await env.TruncateAllAsync();
+
+        var fromId = await env.CreateAccountAsync("RUB");
+        var toId = await env.CreateAccountAsync("RUB");
+
+        var transferService = new TransferService(env.Db, TimeProvider, NullLogger<TransferService>.Instance);
+        var booking = Today;
+
+        var result = await transferService.CreateAsync(
+            Guid.NewGuid().ToString("N"),
+            fromId,
+            toId,
+            amount: 100m,
+            currency: "RUB",
+            booking,
+            booking,
+            ct: CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+
+        var transferId = result.Value;
+
+        (await env.Db.Transfers.CountAsync()).Should().Be(1);
+        (await env.Db.LedgerEntries.CountAsync()).Should().Be(2);
+        (await env.Db.OutboxMessages.CountAsync()).Should().Be(1);
+
+        var outboxMessage = await env.Db.OutboxMessages.SingleAsync();
+        outboxMessage.Type.Should().Be(TransferCreatedEvent.EventType);
+        outboxMessage.Status.Should().Be(OutboxMessageStatus.Pending);
+
+        using var payload = JsonDocument.Parse(outboxMessage.Payload);
+        var root = payload.RootElement;
+
+        root.GetProperty("transferId").GetGuid().Should().Be(transferId);
+        root.GetProperty("fromAccountId").GetGuid().Should().Be(fromId);
+        root.GetProperty("toAccountId").GetGuid().Should().Be(toId);
+        root.GetProperty("amount").GetDecimal().Should().Be(100m);
+        root.GetProperty("currency").GetString().Should().Be("RUB");
     }
 
     [Fact]

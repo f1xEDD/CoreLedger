@@ -23,6 +23,7 @@ public sealed class TestEnv(LedgerDbContext db) : IAsyncDisposable
 
     public async Task TruncateAllAsync()
     {
+        await Db.Database.ExecuteSqlRawAsync("DELETE FROM public.outbox_messages;");
         await Db.Database.ExecuteSqlRawAsync("DELETE FROM public.ledger_entries;");
         await Db.Database.ExecuteSqlRawAsync("DELETE FROM public.transfers;");
         await Db.Database.ExecuteSqlRawAsync("DELETE FROM public.accounts;");
