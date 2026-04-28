@@ -8,4 +8,7 @@ public sealed record TransferCreatedEvent(
     string Currency,
     DateOnly BookingDate,
     DateOnly ValueDate,
-    DateTime OccurredAtUtc);
+    DateTime OccurredAtUtc)
+{
+    public const string EventType = "coreledger.transfer.created.v1";
+}

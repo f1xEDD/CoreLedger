@@ -1,9 +1,11 @@
 ﻿using System.Data;
 using CoreLedger.Application.Abstractions;
 using CoreLedger.Application.Services;
+using CoreLedger.Application.Transfers.Events;
 using CoreLedger.Domain.Ledger;
 using CoreLedger.Domain.Time;
 using CoreLedger.Domain.Transfers;
+using CoreLedger.Infrastructure.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -78,6 +80,23 @@ public sealed class TransferService(
 
         db.Entry(domain).Property("IdempotencyKey").CurrentValue = idk;
 
+        var transferCreated = new TransferCreatedEvent(
+            TransferId: transferId,
+            FromAccountId: from.AccountId,
+            ToAccountId: to.AccountId,
+            Amount: amount,
+            Currency: money.Currency,
+            BookingDate: booking,
+            ValueDate: value,
+            OccurredAtUtc: timeProvider.UtcNow);
+
+        var outboxMessage = OutboxMessageFactory.From(
+            type: TransferCreatedEvent.EventType,
+            message: transferCreated,
+            occurredAtUtc: transferCreated.OccurredAtUtc);
+
+        db.OutboxMessages.Add(outboxMessage);
+        
         try
         {
             await db.SaveChangesAsync(ct);
