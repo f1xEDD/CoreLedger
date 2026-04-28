@@ -31,7 +31,7 @@ builder.Services
 builder.Services.RegisterOptions(builder.Configuration);
 
 builder.Services.AddSingleton<ITimeProvider, SystemTimeProvider>();
-builder.Services.AddScoped<IEventPublisher, LoggingEventPublisher>();
+builder.Services.AddScoped<IEventPublisher, RabbitMqEventPublisher>();
 
 builder.Services.AddHostedService<OutboxDispatcher>();
 
