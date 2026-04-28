@@ -5,6 +5,8 @@ CoreLedger is a learning-oriented .NET 9 backend that models a small banking led
 - double-entry transfers
 - idempotent transfer creation
 - balances calculated from ledger entries
+- transfer-created outbox events
+- RabbitMQ publishing through an outbox dispatcher
 
 The solution is organized as a backend monorepo with `Domain`, `Application`, `Infrastructure`, and `Api` layers.
 
@@ -54,7 +56,7 @@ Key ideas:
 
 ## How To Run
 
-Start PostgreSQL:
+Start local infrastructure:
 
 ```bash
 docker compose -f docker/docker-compose.yml up -d
@@ -68,6 +70,23 @@ Port=5432
 Database=coreledger
 Username=dev
 Password=devpass
+```
+
+The default RabbitMQ settings are:
+
+```text
+HostName=localhost
+Port=5672
+UserName=dev
+Password=devpass
+ExchangeName=coreledger.events
+ExchangeType=topic
+```
+
+RabbitMQ management UI:
+
+```text
+http://localhost:15672
 ```
 
 Run the API:
@@ -90,6 +109,11 @@ Optional checks:
 dotnet build
 dotnet test
 ```
+
+The API registers:
+- `ITimeProvider` as `SystemTimeProvider`
+- `IEventPublisher` as `RabbitMqEventPublisher`
+- `OutboxDispatcher` as a hosted background service
 
 ## Create Accounts
 
@@ -244,6 +268,32 @@ Dispatcher behavior:
 - if retry budget remains, the message stays `Pending`
 - if `MaxAttempts` is exhausted, the message becomes `Failed`
 
+Development configuration:
+
+```json
+{
+  "Outbox": {
+    "BatchSize": 20,
+    "PollingIntervalSeconds": 5,
+    "MaxAttempts": 5
+  },
+  "RabbitMq": {
+    "HostName": "localhost",
+    "Port": 5672,
+    "UserName": "dev",
+    "Password": "devpass",
+    "ExchangeName": "coreledger.events",
+    "ExchangeType": "topic"
+  }
+}
+```
+
+Publishing flow:
+- `POST /transfers` creates the transfer and ledger entries
+- the same transaction writes one `outbox_messages` row
+- `OutboxDispatcher` polls pending messages
+- `RabbitMqEventPublisher` publishes each message to RabbitMQ using the event type as routing key
+
 ## Error Codes
 
 Expected application errors are returned in a consistent shape:
@@ -287,3 +337,5 @@ Transfer-specific notes:
 - `Infrastructure` contains EF Core persistence and query/service implementations.
 - `Api` stays thin and maps `Result<T>` to HTTP responses.
 - transfer side effects are persisted through the outbox pattern before dispatch.
+- outbox delivery is handled by a hosted background dispatcher.
+- RabbitMQ is the current event transport for published outbox messages.
