@@ -2,15 +2,31 @@
 
 ## Unreleased
 
-### Added
-- Added transfer outbox message creation with event type `coreledger.transfer.created.v1`.
+## v0.2.0 - 2026-04-28
 
-### Tests
-- Added transfer service coverage for outbox message creation and payload shape.
-- Added outbox dispatcher coverage for retryable and terminal publish failures.
+### Added
+- Added transactional outbox support for reliable integration event delivery.
+- Added `outbox_messages` table with message status, attempts, last error, and processed timestamp.
+- Added `TransferCreatedEvent` integration event with stable event type `coreledger.transfer.created.v1`.
+- Added outbox message creation during transfer creation in the same database transaction.
+- Added `OutboxDispatcher` background service for processing pending outbox messages.
+- Added `IEventPublisher` abstraction for publishing outbox events.
+- Added `LoggingEventPublisher` for local/debug publishing.
+- Added RabbitMQ local infrastructure via Docker Compose.
+- Added `RabbitMqEventPublisher` for publishing outbox events to RabbitMQ.
+- Added RabbitMQ configuration through `RabbitMqOptions`.
+- Added RabbitMQ publisher integration test with Testcontainers.
+- Added outbox dispatcher tests for successful publishing and retry/failure scenarios.
+
+### Changed
+- Outbox event publishing is now decoupled from transfer creation through `IEventPublisher`.
+- `TransferService` now persists transfer data and integration events atomically.
+- Local development configuration now includes RabbitMQ and outbox dispatcher settings.
 
 ### Docs
-- Documented transfer outbox event and dispatcher retry behavior in the README.
+- Documented transactional outbox flow.
+- Documented RabbitMQ local setup, management UI, exchange, and routing key.
+- Updated development instructions for running PostgreSQL and RabbitMQ locally.
 
 ## v0.1.0 - 2026-04-28
 
