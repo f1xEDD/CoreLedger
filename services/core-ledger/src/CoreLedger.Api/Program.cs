@@ -26,6 +26,7 @@ builder.Services
     .AddDbContextCheck<LedgerDbContext>("db");
 
 builder.Services.AddScoped<ITransferService, TransferService>();
+builder.Services.AddScoped<ITransferQueryService, TransferQueryService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 
 builder.Services.AddTransient<DomainErrorMiddleware>();
@@ -111,5 +112,12 @@ app.MapPost("/transfers",
             return Results.Problem(detail: ex.Message);
         }
     });
+
+app.MapGet("/transfers/{id:guid}", async (Guid id, ITransferQueryService svc, CancellationToken ct) =>
+{
+    var result = await svc.GetByIdAsync(id, ct);
+
+    return ApiResults.From(result, Results.Ok);
+});
 
 app.Run();
