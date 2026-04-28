@@ -2,9 +2,11 @@ using CoreLedger.Api;
 using CoreLedger.Api.Dto.Accounts;
 using CoreLedger.Api.Dto.Transfers;
 using CoreLedger.Api.Middlewares;
+using CoreLedger.Application.Outbox;
 using CoreLedger.Application.Services;
 using CoreLedger.Domain.Time;
 using CoreLedger.Infrastructure;
+using CoreLedger.Infrastructure.Outbox;
 using CoreLedger.Infrastructure.Services;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +28,13 @@ builder.Services
     .AddCheck("self", () => HealthCheckResult.Healthy())
     .AddDbContextCheck<LedgerDbContext>("db");
 
+builder.Services.RegisterOptions(builder.Configuration);
+
 builder.Services.AddSingleton<ITimeProvider, SystemTimeProvider>();
+builder.Services.AddScoped<IEventPublisher, LoggingEventPublisher>();
+
+builder.Services.AddHostedService<OutboxDispatcher>();
+
 builder.Services.AddScoped<ITransferService, TransferService>();
 builder.Services.AddScoped<ITransferQueryService, TransferQueryService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
