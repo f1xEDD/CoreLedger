@@ -28,6 +28,7 @@ builder.Services
 builder.Services.AddScoped<ITransferService, TransferService>();
 builder.Services.AddScoped<ITransferQueryService, TransferQueryService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IAccountQueryService, AccountQueryService>();
 
 builder.Services.AddTransient<DomainErrorMiddleware>();
 
@@ -77,6 +78,13 @@ app.MapPost("/accounts/{id:guid}/close", async (Guid id, IAccountService svc, Ca
     var result = await svc.CloseAsync(id, ct);
     
     return ApiResults.From(result, _ => Results.Ok(new { closed = true }));
+});
+
+app.MapGet("/accounts/{id:guid}/balance", async (Guid id, IAccountQueryService svc, CancellationToken ct) =>
+{
+    var result = await svc.GetBalanceAsync(id, ct);
+
+    return ApiResults.From(result, Results.Ok);
 });
 
 app.MapPost("/transfers",
