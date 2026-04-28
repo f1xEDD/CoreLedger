@@ -6,8 +6,9 @@ public static class OptionExtensions
 {
     public static IServiceCollection RegisterOptions(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<OutboxOptions>(
-            configuration.GetSection("Outbox"));
+        services
+            .Configure<OutboxOptions>(configuration.GetSection("Outbox"))
+            .Configure<RabbitMqOptions>(configuration.GetSection("RabbitMq"));
 
         return services;
     }
