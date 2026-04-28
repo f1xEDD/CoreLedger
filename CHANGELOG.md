@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added
+- Added transfer outbox message creation with event type `coreledger.transfer.created.v1`.
+
+### Tests
+- Added transfer service coverage for outbox message creation and payload shape.
+- Added outbox dispatcher coverage for retryable and terminal publish failures.
+
+### Docs
+- Documented transfer outbox event and dispatcher retry behavior in the README.
+
 ## v0.1.0 - 2026-04-28
 
 ### Added
@@ -20,4 +30,3 @@
 
 ### Docs
 - Added README with local run instructions and API examples.
-- Added AGENTS.md with Codex development instructions.
