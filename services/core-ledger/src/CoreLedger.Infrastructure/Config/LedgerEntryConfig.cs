@@ -10,12 +10,10 @@ public sealed class LedgerEntryConfig : IEntityTypeConfiguration<LedgerEntry>
     {
         b.ToTable("ledger_entries");
         b.HasKey(x => x.EntryId);
-        
-        b.UsePropertyAccessMode(PropertyAccessMode.Field);
-        
-        b.Property<Guid>("_entryId").HasColumnName("entry_id");
-        b.Property<Guid>("_accountId").HasColumnName("account_id").IsRequired();
-        b.Property<Guid>("_transferId").HasColumnName("transfer_id").IsRequired();
+
+        b.Property(x => x.EntryId).HasColumnName("entry_id");
+        b.Property(x => x.AccountId).HasColumnName("account_id").IsRequired();
+        b.Property(x => x.TransferId).HasColumnName("transfer_id").IsRequired();
         
         b.ComplexProperty(x => x.Amount, money =>
         {
@@ -23,12 +21,12 @@ public sealed class LedgerEntryConfig : IEntityTypeConfiguration<LedgerEntry>
             money.Property(m => m.Currency).HasColumnName("currency").HasMaxLength(16).IsRequired();
         });
 
-        b.Property<DateOnly>("_bookingDate").HasColumnName("booking_date");
-        b.Property<DateOnly>("_valueDate").HasColumnName("value_date");
+        b.Property(x => x.BookingDate).HasColumnName("booking_date");
+        b.Property(x => x.ValueDate).HasColumnName("value_date");
 
         b.Property(x => x.Direction).HasColumnName("direction").HasConversion<int>();
 
-        b.HasIndex("TransferId").HasDatabaseName("ix_ledger_entries_transfer");
-        b.HasIndex("AccountId").HasDatabaseName("ix_ledger_entries_account");
+        b.HasIndex(x => x.TransferId).HasDatabaseName("ix_ledger_entries_transfer");
+        b.HasIndex(x => x.AccountId).HasDatabaseName("ix_ledger_entries_account");
     }
 }
